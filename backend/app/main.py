@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 
 from .intelligence.delay import analyze_delay
-from .intelligence.reallocation import suggest_reallocation
 from .matching.matcher import find_top_matches
 from .schemas.activity import ActivityRequest
 
@@ -22,20 +21,34 @@ def home():
 @app.post("/match")
 def match_activity(activity: ActivityRequest):
 
+    activity_data = activity.model_dump()
+
     results = find_top_matches(
-        activity.model_dump(),
+        activity_data,
         top_k=3
     )
 
     best_match = results[0]
 
-    delay_analysis = analyze_delay(
-        activity.actual_start,
-        activity.actual_end,
-        best_match["planned_start"],
-        best_match["planned_end"],
-        activity.status
-    )
+    # Delay analysis is performed only when actual dates are available.
+    if (
+        activity.actual_start
+        and activity.actual_end
+        and best_match["planned_start"]
+        and best_match["planned_end"]
+    ):
+        delay_analysis = analyze_delay(
+            activity.actual_start,
+            activity.actual_end,
+            best_match["planned_start"],
+            best_match["planned_end"],
+            activity.status
+        )
+
+        final_status = delay_analysis["status"]
+
+    else:
+        final_status = activity.status
 
     return {
         "activity_description": activity.activity_description,
@@ -43,7 +56,7 @@ def match_activity(activity: ActivityRequest):
         "asset_id": activity.asset_id,
         "actual_start": activity.actual_start,
         "actual_end": activity.actual_end,
-        "status": delay_analysis["status"],
+        "status": final_status,
         "delay_reason": activity.delay_reason,
         "source": activity.source,
         "confidence": best_match["confidence"]
