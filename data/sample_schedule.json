@@ -1,0 +1,47 @@
+[
+  {
+    "schedule_activity_id": "ACT-001",
+    "wbs_id": "5.1",
+    "activity_description": "Excavation for foundation",
+    "discipline": "Civil",
+    "asset_id": "AREA-A",
+    "planned_start": "2026-09-01",
+    "planned_end": "2026-09-05"
+  },
+  {
+    "schedule_activity_id": "ACT-002",
+    "wbs_id": "5.2",
+    "activity_description": "PCC for equipment foundation",
+    "discipline": "Civil",
+    "asset_id": "AREA-A",
+    "planned_start": "2026-09-06",
+    "planned_end": "2026-09-07"
+  },
+  {
+    "schedule_activity_id": "ACT-003",
+    "wbs_id": "6.1",
+    "activity_description": "Reinforcement fixing for foundation",
+    "discipline": "Civil",
+    "asset_id": "AREA-A",
+    "planned_start": "2026-09-08",
+    "planned_end": "2026-09-10"
+  },
+  {
+    "schedule_activity_id": "ACT-004",
+    "wbs_id": "6.2",
+    "activity_description": "Structural steel erection",
+    "discipline": "Structural",
+    "asset_id": "UNIT-B",
+    "planned_start": "2026-09-09",
+    "planned_end": "2026-09-15"
+  },
+  {
+    "schedule_activity_id": "ACT-005",
+    "wbs_id": "7.1",
+    "activity_description": "Cable tray installation",
+    "discipline": "Electrical",
+    "asset_id": "UNIT-B",
+    "planned_start": "2026-09-12",
+    "planned_end": "2026-09-16"
+  }
+]
