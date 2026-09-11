@@ -5,3 +5,4 @@ venv/
 .env
 *.db
 .vscode/
+data/visual_proofs/

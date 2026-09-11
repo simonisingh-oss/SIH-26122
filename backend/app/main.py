@@ -15,12 +15,14 @@ from .schemas.activity import (
     ExecutionReportResponse,
     MatchCandidate
 )
+from .geotagged_proof.router import router as visual_proof_router
 
 app = FastAPI(
     title="SIH-26122 Infrastructure Planning-to-Execution Bridge API",
     version="1.0.0",
     description="Oil India Limited Backend API connecting L5/L6 baseline schedule activities with AI/NLP extracted site execution reports."
 )
+app.include_router(visual_proof_router)
 
 
 @app.on_event("startup")

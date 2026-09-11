@@ -1,9 +1,11 @@
-from ..database import get_connection
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
+
+from ..database import get_connection
 
 from .storage import save_uploaded_photo
 from .metadata import extract_metadata
 from .location import is_point_inside_boundary
+from .timestamp import verify_photo_timestamp
 
 
 router = APIRouter(
@@ -25,6 +27,7 @@ async def upload_visual_proof(
     2. Saves the photo.
     3. Extracts GPS and timestamp metadata.
     4. Validates GPS against the site boundary.
+    5. Stores the visual proof information in the database.
     """
 
     if not file.content_type:
@@ -39,20 +42,24 @@ async def upload_visual_proof(
             detail="Only image files are allowed"
         )
 
+    # Save uploaded photo
     file_path = save_uploaded_photo(
         file,
         activity_id
     )
 
+    # Extract EXIF metadata
     metadata = extract_metadata(
         file_path
     )
 
+    # Validate photo location against site boundary
     location_verified = is_point_inside_boundary(
         metadata["latitude"],
         metadata["longitude"]
     )
 
+    # Store proof information in database
     connection = get_connection()
     cursor = connection.cursor()
 
@@ -91,17 +98,28 @@ async def upload_visual_proof(
             or metadata["timestamp"] is not None
         )
     }
+
+
 @router.post("/verify")
 def verify_visual_proof(
     activity_id: str = Form(...),
+    reported_start: str = Form(...),
+    reported_end: str = Form(...),
     photo_verified: bool = Form(...),
-    timestamp_verified: bool = Form(...),
     visual_match_confidence: float = Form(...),
     reason: str = Form(...)
 ):
     """
-    Combine backend location verification with
-    the AI visual verification result.
+    Combine backend verification with AI visual verification.
+
+    Backend verifies:
+    - Photo location
+    - Photo timestamp
+
+    AI module provides:
+    - Photo/activity visual verification
+    - Visual match confidence
+    - Verification reason
     """
 
     connection = get_connection()
@@ -110,6 +128,7 @@ def verify_visual_proof(
     # Get the latest uploaded proof for this activity
     cursor.execute("""
         SELECT
+            id,
             location_verified,
             photo_path,
             latitude,
@@ -131,7 +150,16 @@ def verify_visual_proof(
             detail="No uploaded visual proof found for this activity."
         )
 
-    location_verified = bool(proof[0])
+    proof_id = proof[0]
+    location_verified = bool(proof[1])
+    photo_timestamp = proof[5]
+
+    # Verify photo timestamp against reported activity period
+    timestamp_verified = verify_photo_timestamp(
+        photo_timestamp=photo_timestamp,
+        reported_start=reported_start,
+        reported_end=reported_end
+    )
 
     # Build final verification result
     from .verify import build_verification_result
@@ -145,7 +173,7 @@ def verify_visual_proof(
         reason=reason
     )
 
-    # Save AI verification result
+    # Save final verification result
     cursor.execute("""
         UPDATE visual_proofs
         SET
@@ -155,14 +183,7 @@ def verify_visual_proof(
             overall_confidence = ?,
             verification_status = ?,
             verification_reason = ?
-        WHERE activity_id = ?
-        AND id = (
-            SELECT id
-            FROM visual_proofs
-            WHERE activity_id = ?
-            ORDER BY id DESC
-            LIMIT 1
-        )
+        WHERE id = ?
     """, (
         int(result["photo_verified"]),
         int(result["timestamp_verified"]),
@@ -170,8 +191,7 @@ def verify_visual_proof(
         result["overall_confidence"],
         result["status"],
         result["reason"],
-        activity_id,
-        activity_id
+        proof_id
     ))
 
     connection.commit()
