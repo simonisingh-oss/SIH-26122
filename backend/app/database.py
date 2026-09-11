@@ -39,6 +39,23 @@ class ScheduleActivity(Base):
     schedule_status = Column(String, nullable=True)
     asset_id = Column(String, nullable=True)
 
+class VisualProof(Base):
+    __tablename__ = "visual_proofs"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    activity_id = Column(String, nullable=False)
+    photo_path = Column(Text, nullable=False)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+    photo_timestamp = Column(String, nullable=True)
+    location_verified = Column(Integer, default=0)
+    photo_verified = Column(Integer, default=0)
+    timestamp_verified = Column(Integer, default=0)
+    visual_match_confidence = Column(Float, nullable=True)
+    overall_confidence = Column(Float, nullable=True)
+    verification_status = Column(String, nullable=True)
+    verification_reason = Column(Text, nullable=True)
+    created_at = Column(String, default=lambda: datetime.now(timezone.utc).isoformat())
 
 class ExecutionReport(Base):
     __tablename__ = "execution_reports"
