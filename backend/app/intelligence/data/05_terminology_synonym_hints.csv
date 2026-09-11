@@ -1,0 +1,13 @@
+discipline,field_term,plan_term,notes
+Piping,spool erected,erect line,Common piping-crew phrasing for placing prefabricated spools on the pipe rack
+Piping,fit-up and tack,weld joints (pre-step),Tacking precedes full welding; may need to roll up to the weld activity or be logged as % of it
+Piping,hydro,hydrotest,Common shorthand
+Piping,line tag / iso no.,Activity_ID line reference,Isometric and line numbers embedded in schedule activity names should be extracted as a matching key
+Civil,rebar mat tied,erect rebar,Rebar tying/binding is part of the rebar & shutter activity
+Civil,shuttering / formwork,shutter erection,Regional term variation (formwork vs shuttering)
+Civil,PCC,plain cement concrete,Used for sub-base/leveling course before main pour
+Electrical,cable laying,lay power cable,Direct synonym
+Electrical,termination,terminate cable,Direct synonym
+Instrumentation,loop check,loop check - DCS,Standard commissioning step name overlap
+HSE,TBT,toolbox talk,Common abbreviation used verbally/in site diaries
+General,C-101 / compressor skid,Static/Rotating Equipment activities tagged EQP-,Equipment tag numbers often used in place of the WBS activity description
