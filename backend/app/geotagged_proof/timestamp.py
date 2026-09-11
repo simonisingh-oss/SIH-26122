@@ -1,4 +1,26 @@
-from datetime import datetime
+from datetime import datetime, time
+
+
+def parse_timestamp(value):
+    if not value:
+        return None
+
+    value = str(value).strip()
+
+    formats = [
+        "%Y:%m:%d %H:%M:%S",   # EXIF format
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%dT%H:%M:%S",
+        "%Y-%m-%d",
+    ]
+
+    for fmt in formats:
+        try:
+            return datetime.strptime(value, fmt)
+        except ValueError:
+            continue
+
+    return None
 
 
 def verify_photo_timestamp(
@@ -7,42 +29,31 @@ def verify_photo_timestamp(
     reported_end=None
 ):
     """
-    Check whether the photo timestamp falls within
-    the reported activity time period.
-
-    Returns:
-        True  -> timestamp is within the reported period
-        False -> timestamp is missing or outside the period
+    Verify that the photo timestamp falls within
+    the reported activity period.
     """
 
-    if not photo_timestamp:
+    photo_dt = parse_timestamp(photo_timestamp)
+
+    if not photo_dt:
         return False
 
-    try:
-        # EXIF timestamp format:
-        # YYYY:MM:DD HH:MM:SS
-        photo_time = datetime.strptime(
-            photo_timestamp,
-            "%Y:%m:%d %H:%M:%S"
+    start_dt = parse_timestamp(reported_start)
+
+    if not start_dt:
+        return False
+
+    end_dt = parse_timestamp(reported_end)
+
+    if not end_dt:
+        end_dt = start_dt
+
+    # If only a date was supplied for the end,
+    # consider the entire day valid.
+    if len(str(reported_end).strip()) == 10:
+        end_dt = datetime.combine(
+            end_dt.date(),
+            time.max
         )
 
-        if reported_start:
-            reported_start = datetime.fromisoformat(
-                str(reported_start).replace("Z", "")
-            )
-
-            if photo_time < reported_start:
-                return False
-
-        if reported_end:
-            reported_end = datetime.fromisoformat(
-                str(reported_end).replace("Z", "")
-            )
-
-            if photo_time > reported_end:
-                return False
-
-        return True
-
-    except (ValueError, TypeError):
-        return False
+    return start_dt <= photo_dt <= end_dt
